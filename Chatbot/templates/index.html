@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Budget Travel Assistant</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --primary-hover: #4338ca;
+            --secondary-color: #f59e0b;
+            --accent-color: #8b5cf6;
+        }
+        
+        body {
+            background-image: url('https://images.unsplash.com/photo-1469474968028-56623f02e42e?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80');
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+        
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+        
+        .chat-container {
+            height: calc(100vh - 250px);
+        }
+        
+        .message {
+            max-width: 80%;
+            margin: 10px;
+            padding: 15px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            animation: fadeIn 0.5s ease-in-out;
+            transition: all 0.3s ease;
+        }
+        
+        .message:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+        }
+        
+        .user-message {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            margin-left: auto;
+            border-bottom-right-radius: 5px;
+        }
+        
+        .assistant-message {
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            margin-right: auto;
+            border-bottom-left-radius: 5px;
+        }
+        
+        .typing-indicator {
+            display: none;
+            padding: 15px;
+            background-color: #f5f5f5;
+            border-radius: 15px;
+            margin: 10px;
+            width: fit-content;
+        }
+        
+        .typing-indicator span {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background-color: #90a4ae;
+            border-radius: 50%;
+            margin-right: 5px;
+            animation: typing 1s infinite;
+        }
+        
+        .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+        
+        @keyframes typing {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .preference-card {
+            transition: all 0.3s ease;
+        }
+        
+        .preference-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #4f46e5 0%, #8b5cf6 100%);
+        }
+        
+        .formatted-response {
+            line-height: 1.6;
+        }
+        
+        .formatted-response h3 {
+            font-weight: 600;
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+            color: #4a5568;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 0.5rem;
+        }
+        
+        .formatted-response ul, .formatted-response ol {
+            margin-left: 1.5rem;
+            margin-bottom: 1.5rem;
+            margin-top: 0.5rem;
+        }
+        
+        .formatted-response li {
+            margin-bottom: 0.75rem;
+            position: relative;
+            padding-left: 0.5rem;
+        }
+        
+        .formatted-response p {
+            margin-bottom: 1.5rem;
+            text-align: justify;
+        }
+        
+        .formatted-response p:last-child {
+            margin-bottom: 0;
+        }
+        
+        .highlight {
+            background-color: #fef3c7;
+            padding: 0.2rem 0.4rem;
+            border-radius: 0.25rem;
+            font-weight: 500;
+        }
+        
+        .topic-separator {
+            border-top: 1px dashed #e2e8f0;
+            margin: 1.5rem 0;
+        }
+        
+        .transition-word {
+            font-weight: 500;
+            color: #4a5568;
+        }
+        
+        /* Custom range slider */
+        input[type="range"] {
+            -webkit-appearance: none;
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 5px;
+            background-image: linear-gradient(var(--primary-color), var(--primary-color));
+            background-repeat: no-repeat;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            cursor: pointer;
+            box-shadow: 0 0 2px 0 #555;
+            transition: background .3s ease-in-out;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb:hover {
+            background: var(--primary-hover);
+        }
+        
+        input[type="range"]::-webkit-slider-runnable-track {
+            -webkit-appearance: none;
+            box-shadow: none;
+            border: none;
+            background: transparent;
+        }
+        
+        /* Pulse animation for the send button */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        /* Floating animation for cards */
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+        
+        .float {
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        /* Shimmer effect for loading */
+        @keyframes shimmer {
+            0% { background-position: -1000px 0; }
+            100% { background-position: 1000px 0; }
+        }
+        
+        .shimmer {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 1000px 100%;
+            animation: shimmer 2s infinite linear;
+        }
+        
+        /* Interactive elements */
+        .interactive-element {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .interactive-element:hover {
+            transform: scale(1.05);
+        }
+        
+        /* Tooltip styles */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 120px;
+            background-color: #555;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -60px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        /* Confetti effect */
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background-color: #f00;
+            position: absolute;
+            animation: confetti 5s ease-in-out infinite;
+            z-index: 1000;
+        }
+        
+        @keyframes confetti {
+            0% { transform: translateY(0) rotateZ(0deg); opacity: 1; }
+            100% { transform: translateY(1000px) rotateZ(720deg); opacity: 0; }
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="min-h-screen">
+        <!-- Header -->
+        <header class="gradient-bg text-white py-6 shadow-lg">
+            <div class="container mx-auto px-4">
+                <h1 class="text-4xl font-bold text-center mb-2 animate__animated animate__fadeInDown">✈️ AI Budget Travel Assistant</h1>
+                <p class="text-center text-gray-100 animate__animated animate__fadeInUp animate__delay-1s">Your personal AI travel planner for budget-friendly adventures</p>
+            </div>
+        </header>
+
+        <div class="container mx-auto px-4 py-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <!-- Sidebar -->
+                <div class="space-y-6">
+                    <div class="glass-effect p-6 rounded-xl shadow-md preference-card float">
+                        <h2 class="text-xl font-semibold mb-4 text-gray-800">Travel Preferences</h2>
+                        <div class="space-y-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Budget (₹)</label>
+                                <input type="range" id="budget" min="0" max="500000" value="100000" 
+                                       class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                                <div class="flex justify-between text-sm text-gray-600 mt-1">
+                                    <span>₹0</span>
+                                    <span id="budgetValue" class="font-semibold">₹100,000</span>
+                                    <span>₹500,000</span>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Travel Style</label>
+                                <select id="travelStyle" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                    <option value="Backpacker">🎒 Backpacker</option>
+                                    <option value="Budget">💰 Budget</option>
+                                    <option value="Comfort">🌟 Comfort</option>
+                                    <option value="Luxury">✨ Luxury</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Trip Duration (days)</label>
+                                <input type="number" id="tripDuration" min="1" max="90" value="7" 
+                                       class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            </div>
+                            <div class="pt-2">
+                                <button id="resetPreferences" class="w-full bg-gray-200 hover:bg-gray-300 text-gray-700 py-2 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center">
+                                    <i class="fas fa-redo-alt mr-2"></i> Reset Preferences
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass-effect p-6 rounded-xl shadow-md float" style="animation-delay: 0.5s;">
+                        <h2 class="text-xl font-semibold mb-4 text-gray-800">Quick Tips</h2>
+                        <ul class="space-y-2 text-gray-600">
+                            <li class="flex items-center interactive-element">
+                                <i class="fas fa-lightbulb text-yellow-500 mr-2"></i>
+                                <span class="tooltip">Ask about specific destinations
+                                    <span class="tooltiptext">Try: "Recommend destinations in India"</span>
+                                </span>
+                            </li>
+                            <li class="flex items-center interactive-element">
+                                <i class="fas fa-lightbulb text-yellow-500 mr-2"></i>
+                                <span class="tooltip">Request budget accommodations
+                                    <span class="tooltiptext">Try: "Find budget hotels in Goa"</span>
+                                </span>
+                            </li>
+                            <li class="flex items-center interactive-element">
+                                <i class="fas fa-lightbulb text-yellow-500 mr-2"></i>
+                                <span class="tooltip">Get local food recommendations
+                                    <span class="tooltiptext">Try: "Best street food in Mumbai"</span>
+                                </span>
+                            </li>
+                            <li class="flex items-center interactive-element">
+                                <i class="fas fa-lightbulb text-yellow-500 mr-2"></i>
+                                <span class="tooltip">Ask about transportation options
+                                    <span class="tooltiptext">Try: "How to get around in Delhi"</span>
+                                </span>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div class="glass-effect p-6 rounded-xl shadow-md float" style="animation-delay: 1s;">
+                        <h2 class="text-xl font-semibold mb-4 text-gray-800">Popular Destinations</h2>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button class="destination-btn bg-blue-100 hover:bg-blue-200 text-blue-800 py-2 px-3 rounded-lg text-sm transition-colors duration-200">
+                                Goa
+                            </button>
+                            <button class="destination-btn bg-green-100 hover:bg-green-200 text-green-800 py-2 px-3 rounded-lg text-sm transition-colors duration-200">
+                                Kerala
+                            </button>
+                            <button class="destination-btn bg-purple-100 hover:bg-purple-200 text-purple-800 py-2 px-3 rounded-lg text-sm transition-colors duration-200">
+                                Rajasthan
+                            </button>
+                            <button class="destination-btn bg-yellow-100 hover:bg-yellow-200 text-yellow-800 py-2 px-3 rounded-lg text-sm transition-colors duration-200">
+                                Himachal
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chat Area -->
+                <div class="md:col-span-3">
+                    <div class="glass-effect rounded-xl shadow-md p-6">
+                        <div id="chatMessages" class="chat-container overflow-y-auto mb-6">
+                            <!-- Welcome message -->
+                            <div class="assistant-message formatted-response animate__animated animate__fadeIn">
+                                <p class="font-medium text-gray-800 mb-2">👋 Welcome to your AI Travel Assistant!</p>
+                                <p>I'm here to help you plan your perfect trip within your budget. Feel free to ask me about:</p>
+                                <ul class="list-disc ml-4 mt-2">
+                                    <li>Destination recommendations</li>
+                                    <li>Budget accommodations</li>
+                                    <li>Transportation options</li>
+                                    <li>Local attractions</li>
+                                    <li>Food recommendations</li>
+                                </ul>
+                                <div class="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-100">
+                                    <p class="text-blue-800"><i class="fas fa-info-circle mr-2"></i> Try clicking on a destination above or ask me a specific question to get started!</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="typing-indicator" id="typingIndicator">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+                        <div class="flex space-x-2">
+                            <input type="text" id="userInput" 
+                                   class="flex-1 rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                   placeholder="Ask me anything about your travel plans!">
+                            <button onclick="sendMessage()" 
+                                    class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-2 rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-colors duration-200 flex items-center pulse">
+                                <span>Send</span>
+                                <i class="fas fa-paper-plane ml-2"></i>
+                            </button>
+                            <button onclick="viewResponse()" id="viewResponseBtn" 
+                                    class="bg-gradient-to-r from-green-600 to-teal-600 text-white px-6 py-2 rounded-lg hover:from-green-700 hover:to-teal-700 transition-colors duration-200 flex items-center" style="display: none;">
+                                <span>View Response</span>
+                                <i class="fas fa-external-link-alt ml-2"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="bg-gray-800 text-white py-6 mt-8">
+            <div class="container mx-auto px-4 text-center">
+                <p>Made with ❤️ by AI Budget Travel Assistant</p>
+                <p class="text-sm text-gray-400 mt-2">Powered by Google's Gemini AI</p>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // Update budget value display
+        document.getElementById('budget').addEventListener('input', function(e) {
+            const value = parseInt(e.target.value);
+            document.getElementById('budgetValue').textContent = `₹${value.toLocaleString('en-IN')}`;
+            
+            // Update the range slider background
+            const percent = (value / 500000) * 100;
+            this.style.backgroundImage = `linear-gradient(var(--primary-color), var(--primary-color)), linear-gradient(#e2e8f0, #e2e8f0)`;
+            this.style.backgroundSize = `${percent}% 100%, 100% 100%`;
+        });
+        
+        // Reset preferences
+        document.getElementById('resetPreferences').addEventListener('click', function() {
+            document.getElementById('budget').value = 100000;
+            document.getElementById('budgetValue').textContent = '₹100,000';
+            document.getElementById('travelStyle').value = 'Budget';
+            document.getElementById('tripDuration').value = 7;
+            
+            // Update the range slider background
+            const percent = (100000 / 500000) * 100;
+            document.getElementById('budget').style.backgroundImage = `linear-gradient(var(--primary-color), var(--primary-color)), linear-gradient(#e2e8f0, #e2e8f0)`;
+            document.getElementById('budget').style.backgroundSize = `${percent}% 100%, 100% 100%`;
+            
+            // Add animation
+            this.classList.add('animate__animated', 'animate__pulse');
+            setTimeout(() => {
+                this.classList.remove('animate__animated', 'animate__pulse');
+            }, 1000);
+        });
+
+        // Handle Enter key in input
+        document.getElementById('userInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+        
+        // Destination buttons
+        document.querySelectorAll('.destination-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const destination = this.textContent.trim();
+                document.getElementById('userInput').value = `Tell me about ${destination} and recommend places to visit there within my budget`;
+                document.getElementById('userInput').focus();
+                
+                // Add animation
+                this.classList.add('animate__animated', 'animate__pulse');
+                setTimeout(() => {
+                    this.classList.remove('animate__animated', 'animate__pulse');
+                }, 1000);
+            });
+        });
+
+        function addMessage(content, isUser) {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user-message' : 'assistant-message formatted-response'} animate__animated animate__fadeIn`;
+            messageDiv.innerHTML = content;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            
+            // Add confetti effect for user messages
+            if (isUser) {
+                createConfetti();
+            }
+        }
+        
+        function createConfetti() {
+            const colors = ['#f00', '#0f0', '#00f', '#ff0', '#f0f', '#0ff'];
+            for (let i = 0; i < 50; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * window.innerWidth + 'px';
+                confetti.style.top = Math.random() * window.innerHeight + 'px';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.width = Math.random() * 10 + 5 + 'px';
+                confetti.style.height = Math.random() * 10 + 5 + 'px';
+                confetti.style.animationDuration = Math.random() * 3 + 2 + 's';
+                document.body.appendChild(confetti);
+                
+                // Remove confetti after animation
+                setTimeout(() => {
+                    confetti.remove();
+                }, 5000);
+            }
+        }
+
+        function showTypingIndicator() {
+            document.getElementById('typingIndicator').style.display = 'block';
+        }
+
+        function hideTypingIndicator() {
+            document.getElementById('typingIndicator').style.display = 'none';
+        }
+
+        async function sendMessage() {
+            const userInput = document.getElementById('userInput');
+            const message = userInput.value.trim();
+            
+            if (message) {
+                // Add user message to chat
+                addMessage(message, true);
+                userInput.value = '';
+
+                // Show typing indicator
+                showTypingIndicator();
+
+                // Get preferences
+                const budget = document.getElementById('budget').value;
+                const travelStyle = document.getElementById('travelStyle').value;
+                const tripDuration = document.getElementById('tripDuration').value;
+
+                try {
+                    // Send message to backend
+                    const response = await fetch('/chat', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            message: message,
+                            budget: parseInt(budget),
+                            travel_style: travelStyle,
+                            trip_duration: parseInt(tripDuration)
+                        })
+                    });
+
+                    const data = await response.json();
+                    
+                    // Hide typing indicator
+                    hideTypingIndicator();
+                    
+                    // Add AI response to chat
+                    addMessage(data.response, false);
+
+                    // Show view response button if we have a response
+                    if (data.has_response) {
+                        document.getElementById('viewResponseBtn').style.display = 'flex';
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    hideTypingIndicator();
+                    addMessage('Sorry, there was an error processing your request.', false);
+                }
+            }
+        }
+
+        function viewResponse() {
+            window.location.href = '/response';
+        }
+        
+        // Initialize the range slider background
+        document.addEventListener('DOMContentLoaded', function() {
+            const budgetSlider = document.getElementById('budget');
+            const value = parseInt(budgetSlider.value);
+            const percent = (value / 500000) * 100;
+            budgetSlider.style.backgroundImage = `linear-gradient(var(--primary-color), var(--primary-color)), linear-gradient(#e2e8f0, #e2e8f0)`;
+            budgetSlider.style.backgroundSize = `${percent}% 100%, 100% 100%`;
+        });
+    </script>
+</body>
+</html> 
